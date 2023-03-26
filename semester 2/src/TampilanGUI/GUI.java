@@ -1,0 +1,117 @@
+package TampilanGUI;
+
+import Model.ResponseModel;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+
+public class GUI extends JFrame{
+    private JTextField textField1;
+    private JTextField textField2;
+    private JTextField textField3;
+    private JButton closeButton;
+    private JButton submitButton;
+    private JLabel txtMessage;
+    private JLabel txtStatus;
+    private JLabel txtComment;
+    private JPanel rootPanel;
+    private JTextField JumlahMSG;
+    private JTextField JumlahSTS;
+    private JTextField JumlahCMT;
+    private JButton miniMize;
+
+
+    public GUI() {
+        submitButton.addActionListener(e -> {
+                    if (e.getSource() == submitButton) {
+                        try {
+                            // AMBIL DATA
+                            URL url = new URL("https://harber.mimoapps.xyz/api/getaccess.php");
+                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                            connection.setRequestMethod("GET");
+
+                            // BACA DATA DARI JSON KE ARRAY
+                            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                            String inputLine;
+                            StringBuffer response = new StringBuffer();
+                            while ((inputLine = in.readLine()) != null) {
+                                response.append(inputLine);
+                            }
+                            in.close();
+
+                            // PARSE JSON
+                            JSONArray jsonArray = new JSONArray(response.toString());
+
+                            // CONVER JSON KE ARRAY
+                            ArrayList<ResponseModel> parsedList = new ArrayList<>();
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                ResponseModel resModel = new ResponseModel();
+                                JSONObject myJSONObject = jsonArray.getJSONObject(i);
+                                resModel.setMessage(myJSONObject.getString("message"));
+                                resModel.setStatus(myJSONObject.getString("status"));
+                                resModel.setComments(myJSONObject.getString("comment"));
+                                parsedList.add(resModel);
+
+                            }
+                            //DIMUNCULKAN DI TEXT AREA
+
+
+                            for (int index = 0; index < parsedList.size(); index++) {
+                                textField1.setText(parsedList.get(index).getMessage());
+                                textField2.setText(parsedList.get(index).getStatus());
+                                textField3.setText(parsedList.get(index).getComments());
+
+                                String text1 = textField1.getText();
+                                String text2 = textField2.getText();
+                                String text3 = textField3.getText();
+
+                                String[] words = text1.split(" ");
+                                int numWords = words.length;
+                                JumlahMSG.setText(" " + numWords);
+
+                                String[] words1 = text2.split(" ");
+                                int numWords1 = words1.length;
+                                JumlahSTS.setText(" " + numWords1);
+
+                                String[] words2 = text3.split(" ");
+                                int numWords2 = words2.length;
+                                JumlahCMT.setText(" " + numWords2);
+                                }
+
+                        } catch (IOException ex) {
+
+                            JOptionPane.showMessageDialog(this, "Data gagal", "Error", JOptionPane.ERROR_MESSAGE);
+                        } catch (JSONException ex) {
+
+                            JOptionPane.showMessageDialog(this, "Data Gagal", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+
+                    }
+                });
+        closeButton.addActionListener(e -> {
+            System.exit(0);
+        });
+    }
+    public static void main(String[] args) throws IOException {
+        JFrame frame = new JFrame("GUI");
+        frame.setContentPane(new GUI().rootPanel);
+        frame.setTitle("TM 01");
+        frame.setSize(450,300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setUndecorated(true);
+        frame.pack();
+        frame.setVisible(true);
+        frame.setLocationRelativeTo(null);
+    }
+}
+
